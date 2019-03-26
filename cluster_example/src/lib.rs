@@ -9,7 +9,6 @@ extern crate slog;
 extern crate portus;
 extern crate cluster_message_types;
 
-use std::cmp::max;
 use std::time::Instant;
 use std::collections::HashMap;
 use portus::{Slave, Aggregator, CongAlg, Config, Datapath, DatapathInfo, DatapathTrait, Report};
@@ -199,9 +198,9 @@ impl<T: Ipc> CongAlg<T> for ClusterExample<T> {
             _summary : Summary { id: info.src_ip, ..Default::default() }, 
         };
 
-				if s.allocator.as_str() == "qdisc" {
-					s.qdisc = Some(Qdisc::get(String::from("ens5"), (1,0)));
-				}
+        if s.allocator.as_str() == "qdisc" {
+            s.qdisc = Some(Qdisc::get(String::from("ens33"), (1,0)));
+        }
 
         s.logger.as_ref().map(|log| {
             debug!(log, "starting new aggregate"); 
@@ -248,7 +247,7 @@ impl<T: Ipc> Slave for ClusterExample<T> {
 
     fn on_allocation(&mut self, a: &Allocation) {
         self.rate = a.rate;
-				println!("rate {}", a.rate);
+        println!("rate {}", a.rate);
         // self.cwnd = (f64::from(a.rate) * f64::from(self.min_rtt)/1.0e6) as u32;
 				// self.cwnd = 1200000;
 				// self.rate = 12750000;
@@ -268,10 +267,16 @@ impl<T: Ipc> Slave for ClusterExample<T> {
             flow.last_msg = Instant::now();
         }
 
+        if let Some(flow) = self.subflows.get(&sock_id) {
+            println!("flow.rtt: {}", flow.rtt);
+        }
+
         if self.min_rtt == 0 || rtt < self.min_rtt {
             self.min_rtt = rtt;
         }
+        // TODO: This may result in overflow.
         self.bytes_acked += acked;
+        println!("self.bytes_acked: {}", self.bytes_acked);
         if self.rtt == 0 {
             self.rtt = rtt;
         } else {
@@ -319,7 +324,7 @@ impl<T: Ipc> ClusterExample<T> {
 
     fn allocate_qdisc(&mut self) {
         self.logger.as_ref().map(|log| { info!(log, "qdisc.set_rate"; "rate" => self.rate, "bucket" => self.burst) });
-        match self.qdisc.as_mut().expect("allocation is qdisc but qdisc is None").set_rate(self.rate, self.burst) {
+        match self.qdisc.as_ref().expect("allocation is qdisc but qdisc is None").set_rate(self.rate, self.burst) {
 					Ok(()) => {}
 					Err(()) => {eprintln!("ERROR: failed to set rate!!!")}
 				}

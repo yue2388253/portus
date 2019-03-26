@@ -11,3 +11,5 @@ Cargo.lock
 *.rustfmt
 *.so
 integration_tests/libccp_integration/integration-test
+**.idea
+cluster_example/build
