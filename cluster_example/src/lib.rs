@@ -20,6 +20,8 @@ use cluster_message_types::{summary::Summary, allocation::Allocation};
 pub mod qdisc;
 use qdisc::*;
 
+const NIC_NAME: &str = "h2-eth0";
+
 pub const DEFAULT_SS_THRESH: u32 = 0x7fffffff;
 pub const DEFAULT_PENDING_BYTES: u32 = 2896;
 pub const RTT_EWMA_ALPHA: f64 = 0.1;
@@ -199,12 +201,12 @@ impl<T: Ipc> CongAlg<T> for ClusterExample<T> {
             _summary : Summary { id: info.src_ip, ..Default::default() }, 
         };
 
-				if s.allocator.as_str() == "qdisc" {
-					s.qdisc = Some(Qdisc::get(String::from("ens5"), (1,0)));
-				}
+//        if s.allocator.as_str() == "qdisc" {
+//            s.qdisc = Some(Qdisc::get(NIC_NAME.to_string(), (1,0)));
+//        }
 
         s.logger.as_ref().map(|log| {
-            debug!(log, "starting new aggregate"); 
+            debug!(log, "starting new aggregate");
         });
 
         s.new_flow(control, info);
@@ -322,7 +324,7 @@ impl<T: Ipc> ClusterExample<T> {
         match self.qdisc.as_mut().expect("allocation is qdisc but qdisc is None").set_rate(self.rate, self.burst) {
 					Ok(()) => {}
 					Err(()) => {eprintln!("ERROR: failed to set rate!!!")}
-				}
+        }
     }
 
     fn allocate_rr(&mut self) {

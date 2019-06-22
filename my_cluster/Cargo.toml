@@ -1,0 +1,17 @@
+[package]
+name = "my_cluster"
+version = "0.1.0"
+authors = ["Lam <15622383059@163.com>"]
+edition = "2018"
+
+[dependencies]
+clap = "2.29"
+portus = { path = ".." }
+cluster_message_types = { path = "../cluster_message_types" }
+slog = "2"
+slog-async = "2"
+slog-term = "2"
+time = "0.1"
+
+[build-dependencies]
+bindgen = "0.40.0"
